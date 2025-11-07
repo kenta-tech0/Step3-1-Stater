@@ -2,7 +2,7 @@
 
 ---
 
-## 🚀 プロジェクト概要
+## プロジェクト概要
 
 - **バックエンド**：FastAPI  
 - **フロントエンド**：Next.js（React + Tailwind CSS）  
@@ -31,7 +31,7 @@ project/
 
 ---
 
-## 🧩 バックエンド（FastAPI）
+## バックエンド（FastAPI）
 
 ### 起動方法
 
