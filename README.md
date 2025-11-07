@@ -107,16 +107,6 @@ npm run dev
 
 ---
 
-## 今後の発展アイデア
-
-* CSVや画像データを扱うAPIを追加
-* DB接続（例: SQLite / PostgreSQL）で永続化
-* FastAPIでJinja2テンプレートを使ったHTML返却
-* Next.jsでフォームバリデーションやローディングUI追加
-* API間でJWT認証を実装
-
----
-
 ## 参考資料
 
 * [FastAPI公式ドキュメント](https://fastapi.tiangolo.com/)
