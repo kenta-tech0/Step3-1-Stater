@@ -2,78 +2,72 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# FastAPIアプリケーションを作成
 app = FastAPI()
 
-# CORSの設定 フロントエンドからの接続を許可する部分
+# ===== CORS設定 =====
+# フロントエンド（Next.js）とバックエンド（FastAPI）が異なるポートで動作しているため、
+# ブラウザのセキュリティ制約（同一オリジンポリシー）を回避する設定を行う。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_origins=["http://localhost:3000"],  # Next.jsの実行URLを許可
+    allow_credentials=True, #オリジン間リクエストでCookieをサポートする必要があることを示している。デフォルトは False
+    allow_methods=["*"], # GET, POST, PUT, DELETE
+    allow_headers=["*"] # Accept, Accept-Language, Content-Language, Content-Type
 )
 
-# データのスキーマを定義するためのクラス
+# ===== データスキーマ定義 =====
+# POSTリクエストで送信されるJSONデータをPythonオブジェクトとして受け取るためのモデル。
 class EchoMessage(BaseModel):
-    message: str | None = None
+    message: str | None = None  # messageキーの値を保持（Noneを許可）
 
-# Must課題①【簡易メッセージAPI】自身の氏名をレスポンスするエンドポイントとなるように変更してください
-# Hello!氏名 とレスポンスするイメージです
-# 【注意！】この課題は生成AIを使わずにトライください！
+# ====== APIエンドポイント定義 ======
+
+# シンプルなルートパス "/" にアクセスしたときの応答
 @app.get("/")
 def hello():
     return {"message": "FastAPI hello!"}
 
+# Must課題①: 固定メッセージを返すAPI
 @app.get("/api/hello")
 def hello_world():
-    return {"message": "Hello World by FastAPI"}
+    # Next.js側のGETボタンから呼ばれる
+    return {"message": "Hello kenta"}
 
-@app.get("/api/multiply/{id}")
+# 数値を2倍にして返すAPI
+@app.get("/api/multiply/{id}") #パス内に{id: int}とは書けない
 def multiply(id: int):
     print("multiply")
     doubled_value = id * 2
     return {"doubled_value": doubled_value}
 
+# 受け取ったメッセージをそのまま返す（エコー）API
 @app.post("/api/echo")
 def echo(message: EchoMessage):
     print("echo")
     if not message:
-        raise HTTPException(status_code=400, detail="Invalid JSON")
+        raise HTTPException(status_code=400, detail="Invalid JSON") #エラーハンドリング，今回BaseModelを使っているから不要？追加で調べる！！
 
+    # 受け取ったメッセージがあればそのまま返す。なければデフォルトメッセージ。
     echo_message = message.message if message.message else "No message provided"
     return {"message": f"echo: {echo_message}"}
 
-# Must課題②-1【割り算API】フロントエンドから送られた数値を2で割ってレスポンスするエンドポイントを以下に作成してください
-# 【注意！】この課題は生成AIを使わずにトライください！（上記の既存エンドポイントをアレンジしてみてください）
-# 整数は「int(*integer)」型、文字列は「str(*string)」型になります
+# Must課題②: 数値を2で割るAPI
+@app.get("/api/divide/{id}")
+def divide(id: int):
+    print("divide")
+    half_value = id / 2  # 割り算して半分にする
+    return {"half_value": half_value}
 
+# Want課題①: 文字列の長さを数えるAPI
+@app.get("/api/count/{text}")
+def count(text: str):
+    print("count")
+    text_length = len(text)  # len関数で文字数をカウント
+    return {"count": text_length}
 
-# Want課題①-1【文字数カウントAPI】フロントエンドから送られた文字列をカウントしてレスポンスするエンドポイントを以下に作成してください
-# 【注意！】この課題は生成AIを使わずにトライください！（上記の既存エンドポイントをアレンジしてみてください）
-# 整数は「int(*integer)」型、文字列は「str(*string)」型になります
-# 文字数のカウントは、len関数でカウントできます *例:text_length = len(カウントしたい文字列)
-
-
-# 超Want課題①【HTMLをレスポンスする】backendフォルダ直下のindex.htmlをレスポンスするエンドポイントを以下に作成してください
-# Jinja2Templatesライブラリを使うと便利です
-# よりライトなアプリを想定し、フロントエンドをNext.jsを使用せずにHTML1ページをレスポンスする練習です
-
-
-# 超Want課題②【簡単な業務効率化アプリ作成】超Want課題①のHTMLからアップロードしたcsvファイルを受け取り、請求書形式のに変換してレスポンスするプログラムを作成してください
-# csvファイルはbackend直下のsample.csvを使用してください
-# 請求書形式は任意ですが、参考としてbackend直下に請求書.pngを添付しています
-
-
-# 超Want課題③【自身の業務効率化アプリ作成】Want課題①を参考に、自身の業務を効率化するアプリを作成してください
-# (例)csvファイルをアップロード→取引先別に請求書を作成してPDFで保存するプログラム等
-# 上記に限らず、どんな業務でもOKです
-
-
-# 超Want課題④【超Want課題③アプリのFBをもらう】社内の誰か1人に作成した業務効率化アプリを操作してもらい、FBをもらってください
-# 進め方：業務PCでPython環境構築の上、超Want③を実装する→FastAPIを起動する→→社内LANの自身のIPアドレス+PORT番号 で誰かのPCからアクセスしてもらう
-# 進め方の詳細は、Starter補足資料の【参考】FastAPIアプリを社内公開する方法 を参照してください
-# Python環境構築にあたっては、必要に応じて社内IT部門へポリシーを確認してください
-
+# ====== アプリ起動設定 ======
 if __name__ == "__main__":
     import uvicorn
+    # すべてのIPからアクセスできるようにし、ポート8000で起動
     uvicorn.run(app, host="0.0.0.0", port=8000)
